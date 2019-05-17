@@ -1986,8 +1986,6 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
         data_list.append(interdependence_m)
         data_list.append(s) 
         data_list.append(mortality)
-        data_list.append([failure_times_m])
-        data_list.append([tot_cost])
 
         file = open('Data/'+filename+end_tag+'_MEAN.csv', 'w', newline='')
         with file:
@@ -2020,55 +2018,6 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
         plt.tight_layout()
     if save == 'yes':
         plt.savefig('Figures/'+filename+'_vitality', dpi=800)
-    if plot == 'yes':
-        plt.show()
-    
-    # Interdependence
-    if save == 'yes' or plot == 'yes':
-        plt.figure()
-        plt.plot(time, interdependence_m, 'b')
-        plt.title("Interdependence")
-        plt.xlabel("Time (t)")
-        plt.ylabel("Interdependence")
-    if save == 'yes':
-        plt.savefig('Figures/'+filename+'_interdependence', dpi=500)
-    if plot == 'yes':
-        plt.show()
-    
-    # s (fraction alive)
-    if save == 'yes' or plot == 'yes':
-        plt.figure()
-        plt.plot(time, s, 'g')
-        plt.title("Fraction Individuals Alive")
-        plt.xlabel("Time t")
-        plt.ylabel("s")
-    if save == 'yes':
-        plt.savefig('Figures/'+filename+'_s', dpi=500)
-    if plot == 'yes':
-        plt.show()
-    
-    # Mortality
-    if save == 'yes' or plot == 'yes':
-        plt.figure()
-        plt.plot(time, mortality, 'c')
-        plt.title("Mortality")
-        plt.xlabel("Time (t)")
-        plt.ylabel("Mortality Rate")
-    if save == 'yes':
-        plt.savefig('Figures/'+filename+'_mortality', dpi=500)
-    if plot == 'yes':
-        plt.show()
-    
-    # Costs
-    if save == 'yes' or plot == 'yes':
-        plt.figure()
-        plt.plot(time, costs_m, 'k')
-        plt.title("Cost")
-        plt.xlabel("Time (t)")
-        plt.ylabel("Check Cost")
-        plt.annotate('Total Cost: ' + str(round(sum(costs_m), 2)), xy=(0.05, 0.9), xycoords='axes fraction')
-    if save == 'yes':
-        plt.savefig('Figures/'+filename+'_cost', dpi=500)
     if plot == 'yes':
         plt.show()
         

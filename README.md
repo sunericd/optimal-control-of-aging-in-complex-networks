@@ -5,7 +5,6 @@ This repository contains the code associated with the paper "Optimal control of 
 - "q_learning.py" which includes functions for applying a reinforcement learning (Q-learning) framework to determining optimal repair protocols for aging complex networks.
 - "ode_solver.py" which includes functions that specify the nonlinear analytical model of aging in complex systems along with methods for solving the corresponding differential equations for optimal control.
 - "linear_plots.py" which includes functions for plotting the optimal control solutions (linear)
-- "nonlinear_plots.py" which includes functions for plotting the optimal control solutions (nonlinear)
 
 The code is written in Python3 and requires the Numpy, Scipy, NetworkX, and Matplotlib packages among other common Python libraries. Please refer to the aforementioned scripts for a full list of the imported libraries.
 
