@@ -9,3 +9,5 @@ The code is written in Python3 and requires the Numpy, Scipy, NetworkX, and Matp
 In addition to the scripts, this repository contains several Jupyter notebooks which utilize the functions in the scripts to generate all of the key figures in the manuscript and the supplementary material. These code notebooks also contain several tests and clarifying examples for parties interested in using our functions to analyze aging in complex systems further. Additional examples are available in the "Misc" folder. We also include the Matlab script that uses TOMLAB to solve the nonlinear vitality model for the optimal repair protocols in interdependent networks.
 
 If you find the code helpful for your own work or project, please use the following citation:
+
+### Sun, ED. Michaels, TCT. Mahadevan, L. "Optimal control of aging in complex systems". 2019
