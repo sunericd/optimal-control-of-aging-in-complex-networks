@@ -10,4 +10,6 @@ In addition to the scripts, this repository contains several Jupyter notebooks w
 
 If you find the code helpful for your own work or project, please use the following citation:
 
-### Sun, ED. Michaels, TCT. Mahadevan, L. "Optimal control of aging in complex systems". 2019
+#### Sun E.D., Michaels T.C.T., Mahadevan L. "Optimal control of aging in complex systems". 2019
+
+A summary of some model parameters along with additional directions for running the code is provided in the supplementary material associated with the publication under the "Computational model" section.
