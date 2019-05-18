@@ -418,7 +418,7 @@ def aging_env_t_fast (state, action, A, v, f, vitality, T, alpha, pop_size, rewa
                                                               node_type, edge_type, r_edge, std)
     # Interdependency failure
     if dependency > 0:
-        v = dependencyFail(A, v, dependency)
+        v = dependencyFailOLD(A, v, dependency)
     
     # Get vitality
     degree_vec = getDegrees (A)
@@ -511,7 +511,7 @@ def aging_env_v_fast (state, action, A, v, f, t, T, alpha, pop_size, reward, dis
                                                               node_type, edge_type, r_edge, std)
     # Interdependency failure
     if dependency > 0:
-        v = dependencyFail(A, v, dependency)
+        v = dependencyFailOLD(A, v, dependency)
     
     # Get vitality
     degree_vec = getDegrees (A)
@@ -647,6 +647,24 @@ def visualizeQ_v (Q_matrix, actions, filename, N=1000, T=100, f=0.025):
     
     # Save Q_matrix
     np.savetxt(filename+'.txt', Q_matrix)
+	
+    plt.figure(figsize=(10,2.5))
+    plt.subplot(1,2,1)
+    plt.title('Vitality', fontsize=14)
+    plt.xlabel('Time, $t$', fontsize=12)
+    plt.ylabel('Vitality, $\phi$', fontsize=12)
+    plt.plot(t_vec, vitalities, 'g', linewidth=2.5)
+    #plt.savefig('./Figures/reinforcement/'+filename+'_vitvitality.png', dpi=500)
+    
+    plt.subplot(1,2,2)
+    plt.title('Optimal repair', fontsize=14)
+    plt.xlabel('Time, $t$', fontsize=12)
+    plt.ylabel('Repair rate, $r$', fontsize=12)
+    plt.ylim([0-max(action_vec)*0.05, max(action_vec)*1.05])
+    plt.plot(t_vec, action_vec, 'g', linewidth=2.5)
+    #plt.savefig('./Figures/reinforcement/'+filename+'.png', dpi=500)
+    plt.tight_layout()
+    plt.show()
 
 
 def viz_from_file (filename, actions, N=100, T=100, f=0.025):

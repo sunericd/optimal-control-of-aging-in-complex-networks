@@ -9,6 +9,18 @@ This repository contains the code associated with the paper "Optimal control of 
 The code is written in Python3 and requires the Numpy, Scipy, NetworkX, and Matplotlib packages among other common Python libraries. Please refer to the aforementioned scripts for a full list of the imported libraries.
 
 In addition to the scripts, this repository contains several Jupyter notebooks which utilize the functions in the scripts to generate all of the key figures in the manuscript and the supplementary material. These code notebooks also contain several tests and clarifying examples for parties interested in using our functions to analyze aging in complex systems further. Additional examples are available in the "Misc" folder. We also include the Matlab script ("optimal_control.mat") that uses TOMLAB to solve the nonlinear vitality model for the optimal repair protocols in interdependent networks.
+- "model_visualization.ipynb" corresponding to Figure 1, Figure S1
+- "linear_optimal_control.ipynb" corresponding to Figure 2
+- "nonlinear_optimal_control.ipynb" corresponding to Figure 3
+- "reinforcement_q_learning.ipynb" corresponding to Figure 4
+- "network_topology.ipynb" corresponding to Figure S4
+- "quadratic_repair_cost.ipynb" corresponding to Figure S5
+
+Some data that is used to generate the figures included in the paper are also present in this repository. They are in the correspondingly named folders:
+- "Data" contains linear bang-bang simulated results and other miscellaneous data files
+- "Nonlinear" contains nonlinear bang-bang simulated results for different networks
+- "TOMLAB_data" contains optimal control solutions obtained via TOMLAB/propt on the nonlinear model
+- "ReinforcementLearning" contains linear/nonlinear data on learned Q-matrices from Q-learning
 
 If you find the code helpful for your own work or project, please use the following citation:
 
