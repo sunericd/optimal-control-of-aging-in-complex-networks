@@ -1,4 +1,4 @@
-# Optimal control of aging in complex systems
+# Optimal control of aging in complex networks
 
 This repository contains the code associated with the paper "Optimal control of aging in complex systems" by Eric D. Sun, Thomas C.T. Michaels and L. Mahadevan at the School of Engineering and Applied Sciences, Harvard University. The code is organized into several main Python scripts:
 - "model.py" which includes relevant functions for building, aging, and repairing complex networks. The script also contains methods for validating visualizing, and approximating optimal repair protocols.
