@@ -23,8 +23,8 @@ def diff_y_tlast (y, t, alpha, f, g):
     dydt = [1 + (f+g)*lambd + lambd**2*(phi-1)/(2*alpha), -lambd * (1-phi)**2 / (2*alpha) - (f+g)*phi]
     return (dydt)
 
-def bc(y0, y1, alpha, f, g):
-    return [y0[1]-1, y1[0]]
+#def bc(y0, y1, alpha, f, g):
+#    return [y0[1]-1, y1[0]]
 
 
 def iterateAlpha (alpha_list, f, g, t_range, color_list=['r', 'g', 'b', 'm', 'k', 'c'], save='no'):
@@ -125,24 +125,24 @@ def dphi_dt (t, phi, I, f, r, alpha, n):
     output = -feff*phi+ro*h*(1-phi)
     return (output)
 
-def get_m(I,phi,n):
-    m = binom(n,I*n) * phi**(I*n) * (1-phi)**(n-(I*n))
-    return (m)
+#def get_m(I,phi,n):
+#    m = binom(n,I*n) * phi**(I*n) * (1-phi)**(n-(I*n))
+#    return (m)
 
-def get_h(I,phi,n):
-    h_minus = np.zeros(len(phi))
-    for i in range(round(I*n)):
-        #print (binom(n,i) * phi**i * (1-phi)**(n-i))
-        h_minus += binom(n,i) * phi**i * (1-phi)**(n-i)
-    h = 1-h_minus
-    return (h)
+#def get_h(I,phi,n):
+#    h_minus = np.zeros(len(phi))
+#    for i in range(round(I*n)):
+#        #print (binom(n,i) * phi**i * (1-phi)**(n-i))
+#        h_minus += binom(n,i) * phi**i * (1-phi)**(n-i)
+#    h = 1-h_minus
+#    return (h)
 
-def get_feff(I,phi,f,n):
-    m = get_m(I,phi,n)/phi
-    #feff = f/(1-(I*n)*m*(1-f)) # first-order
-    k = I*n
-    feff = 2*f/(1+(f-1)*k*m+(1+(f-1)*k*m*(2+2*f-2*f*k+(f-1)*k*m))**(1/2))# second-order
-    return (feff)
+#def get_feff(I,phi,f,n):
+#    m = get_m(I,phi,n)#/phi
+#    #feff = f/(1-(I*n)*m*(1-f)) # first-order
+#    k = I*n
+#    feff = 2*f/(1+(f-1)*k*m+(1+(f-1)*k*m*(2+2*f-2*f*k+(f-1)*k*m))**(1/2))# second-order
+#    return (feff)
 
 
 
@@ -223,8 +223,9 @@ def get_r0(t,I,alpha,f,r):
 '''
 
 def get_feff(I,phi,f,n):
-    m = get_m(I,phi,n)/phi
-    feff = f/(1-(I*n)*m*(1-f))
+    m = get_m(I,phi,n)#/phi
+    feff = f/(1-(I*n)*m*(1-f)) ## ORIGINAL: 11/16/2019
+    #feff = f+(I*n)*(1-f)*f*m
     return (feff)
 
 get_dfdphi = elementwise_grad(get_feff,1)

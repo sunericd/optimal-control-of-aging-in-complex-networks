@@ -11,141 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import math
+import os
 from tqdm import tqdm
-
-
-def QLearning_t (actions, pop_size=5, num_episodes=1, T=100, f=0.025, alpha=10, p_explore=0.05, tstep=1):
-    '''
-    [DEPRECATED]
-    Old version:
-    Q-learning function:
-        States = Time step, t
-        Actions = Repair rate, r
-    Parameters:
-        actions [list] = list of repair rates
-        pop_size [int] = number of networks to use at each iteration (averaged over)
-        T [int] = timeframe to simulate for
-        f [float] = 0.025 (failure rate)
-        alpha [float] = 10. (cost of repair)
-        p_explore [float] = prob of exploration
-        tstep [int] = 1 (timestep)
-    '''
-    # Define states and action space
-    states = list(range(0,T+1,tstep))
-    Q_matrix = np.zeros([len(states), len(actions)])
-    discount = 0.95
-    learning_rate = 0.1
-    
-    # Q-learning
-    i = 0
-    while i < num_episodes:
-        # Global variables
-        vitality = 1.0
-        state = states[0]
-        done = False
-        while done == False:
-            state_idx = getStateIdx(state, states) # get state index
-            action_idx = q_learning_action(state_idx, Q_matrix, p_explore) # get best action for state
-            action = actions[action_idx]
-            new_state, reward, done, vitality = aging_env_t (state, action, T, vitality, alpha, pop_size, tstep) # test environment
-            new_state_idx = getStateIdx(new_state, states) # get new state index
-            # update state and Q matrix
-            state_idx, Q_matrix = q_learning_updating(state_idx, action_idx, reward, new_state_idx, Q_matrix, learning_rate, discount)
-            state = states[state_idx]
-        i += 1
-    
-    return (Q_matrix)
-
-
-def QLearning_t_fast (actions, pop_size=5, num_episodes=1, T=100, N=100, f=0.025, alpha=10, p_explore=0.05, tstep=1,
-                     learning_rate=0.1, discount=0.95, reward='normal', decay = True):
-    '''
-    [DEPRECATED]
-    Most updated version for States = time Q-learning
-    Q-learning function:
-        States = Time step, t
-        Actions = Repair rate, r
-    Parameters:
-        actions [list] = list of repair rates
-        pop_size [int] = number of networks to use at each iteration (averaged over)
-        T [int] = timeframe to simulate for
-        f [float] = 0.025 (failure rate)
-        alpha [float] = 10. (cost of repair)
-        p_explore [float] = prob of exploration
-        tstep [int] = 1 (timestep)
-        learning_rate [float] = learning rate for Q-learning (alpha)
-        discount [float] = discount term for Q-learning (gamma)
-        reward [string] = type of reward function ('normal'=healthspan)
-        decay [boolean] = decay in learning_rate and p_explore ?
-    '''
-    # Define states and action space
-    states = list(range(0,T+1,tstep))
-    Q_matrix = np.zeros([len(states), len(actions)])
-    
-    # Set decay steps
-    if decay is True:
-        step_lr = learning_rate/num_episodes
-        step_exp = p_explore/num_episodes
-    
-    # Q-learning
-    for i in tqdm(range(num_episodes)):
-        # Global variables
-        vitality = 1.0
-        state = states[0]
-        done = False
-        # Build network (A, v)
-        A, v = initIndividual (N=N, graph_type='Grandom_s', p=0.1, d=0, edge_type='binary')
-        while done == False:
-            state_idx = getStateIdx(state, states) # get state index
-            action_idx = q_learning_action(state_idx, Q_matrix, p_explore) # get best action for state
-            action = actions[action_idx]
-            new_state, reward, done, A, v, vitality = aging_env_t_fast (state, action, A, v, f, vitality, T, alpha, pop_size, reward, discount) # test environment
-            new_state_idx = getStateIdx(new_state, states) # get new state index
-            # update state and Q matrix
-            state_idx, Q_matrix = q_learning_updating(state_idx, action_idx, reward, new_state_idx, Q_matrix, learning_rate, discount)
-            state = states[state_idx]
-        if decay is True:
-            learning_rate += -step_lr
-            p_explore += -step_exp
-        time.sleep(3) # progress increment    
-    
-    return (Q_matrix)
-
-
-def QLearning_v (actions, pop_size=5, num_episodes=1, T=100, N=1000, f=0.025, alpha=10, p_explore=0.05):
-    '''
-    [DEPRECATED]
-    '''
-    # Define states and action space
-    vstep = 1/N # discrete vitality steps
-    states = list(np.arange(0,1+vstep,vstep))
-    sigfig = round(math.log10(N))
-    states = [round(state, sigfig) for state in states]
-    Q_matrix = np.zeros([len(states), len(actions)])
-    discount = 0.95
-    learning_rate = 0.1
-    
-    # Q-learning
-    i = 0
-    while i < num_episodes:
-        # Global variables
-        t = 0
-        rand_idx = random.randint(0, len(states)-1) # randomly initialize vitality
-        state = states[rand_idx]
-        done = False
-        while done == False:
-            state_idx = getStateIdx(state, states) # get state index
-            action_idx = q_learning_action(state_idx, Q_matrix, p_explore) # get best action for state
-            action = actions[action_idx]
-            new_state, reward, done, t = aging_env_v (state, action, N, T, t, alpha, pop_size) # test environment
-            new_state = round(new_state, sigfig)
-            new_state_idx = getStateIdx(new_state, states) # get new state index
-            # update state and Q matrix
-            state_idx, Q_matrix = q_learning_updating(state_idx, action_idx, reward, new_state_idx, Q_matrix, learning_rate, discount)
-            state = states[state_idx]
-        i += 1
-    
-    return (Q_matrix)
 
 
 def QLearning_v_fast_cluster (actions, pop_size=1, num_episodes=100, T=100, N=100, f=0.025, alpha=10, p_explore=0.1,
@@ -217,265 +84,6 @@ def exp_decay (lambda_val, t):
     Exponential decay at rate lambda_val at time t
     '''
     return (math.exp(-lambda_val*t))
-
-
-def QLearning_v_fast_cluster_unchanged (actions, pop_size=1, num_episodes=100, T=100, N=100, f=0.025, alpha=10, p_explore=0.1,
-                     learning_rate=0.1, discount=0.975, reward='normal', decay=True, I=0, num_nets=50):
-    '''
-    OLD Q-LEARNING MODEL
-    Q-learning function:
-        States = Vitality, phi
-        Actions = Repair rate, r
-    Parameters:
-        actions [list] = list of repair rates
-        pop_size [int] = number of networks to use at each iteration (averaged over) [SET TO 1]
-        T [int] = timeframe to simulate for
-        f [float] = 0.025 (failure rate)
-        alpha [float] = 10. (cost of repair)
-        p_explore [float] = prob of exploration
-        tstep [int] = 1 (timestep)
-        learning_rate [float] = learning rate for Q-learning (alpha)
-        discount [float] = discount term for Q-learning (gamma)
-        reward [string] = type of reward function ('normal'=healthspan)
-        decay [list of float] = decay rate for p_explore and learning_rate respectively
-        I [float] = interdependency failure criterion (I=0 -> linear, independent network)
-        num_nets [int] = number of networks to generate and cycle through during training episodes
-    '''
-    # Define states and action space
-    vstep = 1/N # discrete vitality steps
-    states = list(np.arange(0,1+vstep,vstep))
-    sigfig = round(math.log10(N))
-    states = [round(state, sigfig) for state in states]
-    Q_matrix = np.zeros([len(states), len(actions)])
-        
-    # Initialize networks (num_nets)
-    networks = []
-    for g in range(num_nets):
-        pA, pv = initIndividual (N=N, graph_type='Grandom_s', p=0.1, d=0, edge_type='binary')
-        networks.append([pA, pv])
-    
-    # Get decay step
-    if decay is True:
-        step_exp = p_explore/num_episodes
-    
-    # Q-learning
-    for i in tqdm(range(num_episodes)):
-        # Global variables
-        state = states[-1] # 1/16/2019: changed from [0]
-        done = False
-        t = 0
-        # Retrieve network with circular indexing
-        [A_orig, v_orig] = networks[i % len(networks)]
-        A = np.copy(A_orig)
-        v = np.copy(v_orig)
-        while done == False:
-            state_idx = getStateIdx(state, states) # get state index
-            action_idx = q_learning_action(state_idx, Q_matrix, p_explore) # get best action for state
-            action = actions[action_idx]
-            new_state, reward, done, A, v, t = aging_env_v_fast (state, action, A, v, f, t, T, alpha, pop_size, reward, discount, I) # test environment
-            new_state = round(new_state, sigfig)
-            new_state_idx = getStateIdx(new_state, states) # get new state index
-            # update state and Q matrix
-            state_idx, Q_matrix = q_learning_updating(state_idx, action_idx, reward, new_state_idx, Q_matrix, learning_rate, discount)
-            state = states[state_idx]
-            # decay learning rate and exploration
-        if decay is True:
-            p_explore += -step_exp
-        time.sleep(3) # progress increment
-    
-    return (Q_matrix)
-
-
-def QLearning_v_fast (actions, pop_size=1, num_episodes=100, T=100, N=100, f=0.025, alpha=10, p_explore=0.1,
-                     learning_rate=0.1, discount=0.95, reward='normal', decay = True, I = 0):
-    '''
-    OLD Q-LEARNING MODEL (for local machine use)
-    Q-learning function:
-        States = Vitality, phi
-        Actions = Repair rate, r
-    Parameters:
-        actions [list] = list of repair rates
-        pop_size [int] = number of networks to use at each iteration (averaged over) [SET TO 1]
-        T [int] = timeframe to simulate for
-        f [float] = 0.025 (failure rate)
-        alpha [float] = 10. (cost of repair)
-        p_explore [float] = prob of exploration
-        tstep [int] = 1 (timestep)
-        learning_rate [float] = learning rate for Q-learning (alpha)
-        discount [float] = discount term for Q-learning (gamma)
-        reward [string] = type of reward function ('normal'=healthspan)
-        decay [list of float] = decay rate for p_explore and learning_rate respectively
-        I [float] = interdependency failure criterion (I=0 -> linear, independent network)
-        num_nets [int] = number of networks to generate and cycle through during training episodes
-    '''
-    # Define states and action space
-    vstep = 1/N # discrete vitality steps
-    states = list(np.arange(0,1+vstep,vstep))
-    sigfig = round(math.log10(N))
-    states = [round(state, sigfig) for state in states]
-    Q_matrix = np.zeros([len(states), len(actions)])
-    
-    # Set decay steps
-    if decay is True:
-        step_exp = p_explore/num_episodes
-    
-    # Q-learning
-    for i in tqdm(range(num_episodes)):
-        # Global variables
-        rand_idx = random.randint(0, len(states)-1) # randomly initialize vitality
-        state = states[0]
-        done = False
-        t = 0
-        # Build network (A, v)
-        A, v = initIndividual (N=N, graph_type='Grandom_s', p=0.1, d=0, edge_type='binary')
-        while done == False:
-            state_idx = getStateIdx(state, states) # get state index
-            action_idx = q_learning_action(state_idx, Q_matrix, p_explore) # get best action for state
-            action = actions[action_idx]
-            new_state, reward, done, A, v, t = aging_env_v_fast (state, action, A, v, f, t, T, alpha, pop_size, reward, discount, I) # test environment
-            new_state = round(new_state, sigfig)
-            new_state_idx = getStateIdx(new_state, states) # get new state index
-            # update state and Q matrix
-            state_idx, Q_matrix = q_learning_updating(state_idx, action_idx, reward, new_state_idx, Q_matrix, learning_rate, discount)
-            state = states[state_idx]
-            # decay learning rate and exploration
-        if decay is True:
-            #learning_rate += -step_lr
-            p_explore += -step_exp
-        time.sleep(3) # progress increment
-    
-    return (Q_matrix)
-
-
-
-def aging_env_t (state, action, T, vitality, alpha, pop_size, tstep):
-    '''
-    [DEPRECATED]
-    Age the network according to network aging model for the time-state Q-learning
-    '''
-    # get new vitality
-    new_vitality = simPopulation('env', pop_size=pop_size, N=100, p=0.1, d=1-vitality, f=0.025, r=action, f_thresh=0,
-    graph_type='Grandom_s', weight_type='uniform', check_type='none', kinetic=1, P_check=1, e=0, cost_type=['healthspan', 10], 
-    costC=0.1, costR=1, costE=0.5, costD=0.5, costL=1, P_repl=0, costrepl=1, max_repl=1, repl_type='constant',
-    node_type='binary', damage_type='uniform', edge_type='binary', f_edge=0, r_edge=0, std=0.3, 
-    P_ablate=0,costablate=1,ablate_type='constant',repair_start=0,repair_end=1,delay=0,time_end=tstep,dependency=0,save='no',plot='no')
-    
-    # Calculate reward = -cost
-    
-    # SUGGESTIONS:
-    # maybe a minus time or something like that would be good here
-    # **coarser t intervals?
-    # ***use simIndivudal components to make faster
-    # **quadratic cost
-    # ***how to relate reward to cost integrand?
-    # ***run longer for convergence
-    reward = new_vitality - alpha*action
-    
-    # Increment state
-    new_state = state + tstep
-    
-    # Determines if episode is over
-    if new_state == T:
-        done = True
-    else:
-        done = False
-    
-    return (new_state, reward, done, new_vitality)
-
-
-def aging_env_t_fast (state, action, A, v, f, vitality, T, alpha, pop_size, reward, discount):
-    '''
-    [DEPRECATED]
-    Faster model
-    Age the network according to network aging model for the time-state Q-learning
-    '''
-    ##### Default variables #####
-    damage_type = 'uniform'
-    node_type = 'binary'
-    edge_type = 'binary'
-    f_edge = 0
-    r_edge = 0
-    std = 0
-    i = 0
-    P_check = 0
-    check_type = 'none'
-    weight_type = 'uniform'
-    kinetic = 1
-    e = 0
-    costC = 0
-    costR = 0
-    dependency = 0 # toggle for nonlinear model
-    #############################
-    
-    # Seet repair as action
-    r = action
-    
-    # Damage network
-    A, v, f = Damage(A, v, f, damage_type, node_type, edge_type, f_edge, std, i)
-    
-    # Repair network
-    cost_cr, A, v, P_check, r = Check_and_Repair(A, v, r, check_type, kinetic, P_check, e, i, costC, costR, 
-                                                              node_type, edge_type, r_edge, std)
-    # Interdependency failure
-    if dependency > 0:
-        v = dependencyFailOLD(A, v, dependency)
-    
-    # Get vitality
-    degree_vec = getDegrees (A)
-    weight_vec = getWeights (weight_type, A, v, degree_vec)
-    vitality, interdependence_i = Analyze(v, f, r, i, weight_vec)
-        
-    # Increment time
-    state += 1
-    new_state = state
-    
-    # Calculate reward 
-    if reward == 'quadratic':
-        reward = vitality - alpha*action**2
-    elif reward == 'half_vit': # phi@0.5 --> zero cost
-        reward = vitality - alpha*action
-        reward += -0.4
-    elif reward == 'half_crit_vit': #phi@0.75 --> zero cost
-        reward = vitality - alpha*action
-        reward += -0.65
-    elif reward == 'exp_decay':
-        reward = (vitality - alpha*action) * math.exp(-discount*(new_state-1))
-    else: # basic cost
-        reward = vitality - alpha*action
-    
-    # Determines if episode is over
-    if state == T:
-        done = True
-    else:
-        done = False
-    
-    return (new_state, reward, done, A, v, vitality)
-
-
-def aging_env_v (state, action, N, T, t, alpha, pop_size):
-    '''
-    [DEPRECATED]
-    Old function for aging network for vitality-state Q-learning
-    '''
-    # get new vitality
-    new_state = simPopulation('env', pop_size=pop_size, N=N, p=0.1, d=1-state, f=0.025, r=action, f_thresh=0,
-    graph_type='Grandom_s', weight_type='uniform', check_type='none', kinetic=1, P_check=1, e=0, cost_type=['healthspan', 10], 
-    costC=0.1, costR=1, costE=0.5, costD=0.5, costL=1, P_repl=0, costrepl=1, max_repl=1, repl_type='constant',
-    node_type='binary', damage_type='uniform', edge_type='binary', f_edge=0, r_edge=0, std=0.3, 
-    P_ablate=0,costablate=1,ablate_type='constant',repair_start=0,repair_end=1,delay=0,time_end=1,dependency=0,save='no',plot='no')
-    
-    reward = new_state - alpha*action
-    
-    # Increment state
-    new_t = t + 1
-    
-    # Determines if episode is over
-    if new_t == T:
-        done = True
-    else:
-        done = False
-    
-    return (new_state, reward, done, new_t)
 
 
 def aging_env_v_fast (state, action, A, v, f, t, T, alpha, pop_size, reward, discount, I = 0):
@@ -561,59 +169,6 @@ def getStateIdx (state, states):
 
 ### Visualization of optimal Q matrix
 
-
-def visualizeQ_t (Q_matrix, actions, filename, N=1000, T=100, f=0.025):
-    
-    num_states = Q_matrix.shape[0]
-    step_size = T/num_states
-    state_vec = np.arange(0,T,step_size)
-    state_vec = state_vec.tolist()
-    
-    action_vec = []
-    vitalities_vec = []
-    
-    # fetch optimal actions (repair)
-    for state in state_vec:
-        state_idx = getStateIdx(state, state_vec)
-        best_action_idx = np.argmax(Q_matrix[state_idx, :])
-        best_action = actions[best_action_idx]
-        action_vec.append(best_action)
-        
-    # Calculate vitality curve
-    vitalities = []
-    vitality = 1
-    for t in state_vec:
-        state_idx = getStateIdx(t, state_vec)
-        best_action_idx = np.argmax(Q_matrix[state_idx, :])
-        best_action = actions[best_action_idx]
-        vitality += -(f*vitality)
-        vitality += best_action*(1-vitality)
-        vitalities.append(vitality) # for plotting
-        if vitality < 0:
-            vitality = 0
-        
-    # Save Q_matrix
-    np.savetxt('T_'+filename+'.txt', Q_matrix)
-    
-    # PLOTS
-    plt.figure(figsize=(10,2.5))
-    plt.subplot(1,2,1)
-    plt.title('Vitality', fontsize=14)
-    plt.xlabel('Time, $t$', fontsize=12)
-    plt.ylabel('Vitality, $\phi$', fontsize=12)
-    plt.plot(state_vec, vitalities, 'g', linewidth=2.5)
-    
-    plt.subplot(1,2,2)
-    plt.title('Optimal repair', fontsize=14)
-    plt.xlabel('Time, $t$', fontsize=12)
-    plt.ylabel('Repair rate, $r$', fontsize=12)
-    plt.ylim([0-max(action_vec)*0.05, max(action_vec)*1.05])
-    plt.plot(state_vec, action_vec, 'g', linewidth=2.5)
-    plt.savefig('./Figures/reinforcement/T_'+filename+'.png', dpi=500)
-    plt.tight_layout()
-    plt.show()
-
-
 def visualizeQ_v (Q_matrix, actions, filename, N=1000, T=100, f=0.025):
     
     num_states = Q_matrix.shape[0]
@@ -672,12 +227,6 @@ def viz_from_file (filename, actions, N=100, T=100, f=0.025):
     Q_matrix = np.genfromtxt('results_files/'+filename+'.txt')
     print ('Q_matrix shape = (' + str(Q_matrix.shape[0])+ ', ' + str(Q_matrix.shape[1])+')')
     visualizeQ_v (Q_matrix, actions, filename, N, T, f)
-
-
-import numpy as np
-import math
-import matplotlib.pyplot as plt
-import os
 
 def plotResults (directory, param, p_range, repair_list=[0,0.01], N=100, T=100, plot=False, fine_res=False,
                 binning=False):
@@ -759,19 +308,21 @@ def plotResults (directory, param, p_range, repair_list=[0,0.01], N=100, T=100, 
             plt.plot(a_range, aT1, 'k', linewidth=3, alpha=0.6, label='Analytic')
         else:
             plt.plot(p_range[:len(files)], aT1, 'k', linewidth=3, alpha=0.6, label='Analytic')
-        plt.ylabel('Switching Time, $T_1$', fontsize=14)
+        plt.ylabel('Switching Time, $T_1$', fontsize=16)
         if param == 'alpha':
-            plt.xlabel('Repair Cost, '+r'$\alpha$', fontsize=14)
+            plt.xlabel('Repair Cost, '+r'$\alpha$', fontsize=16)
             plt.xlim(0,None)
         elif param == 'failure':
-            plt.xlabel('Failure rate, $f$', fontsize=14)
+            plt.xlabel('Failure rate, $f$', fontsize=16)
             plt.xlim(0,None)
         elif param == 'repair':
-            plt.xlabel('Repair rate, $r$', fontsize=14)
+            plt.xlabel('Repair rate, $r$', fontsize=16)
             plt.xlim(0,None)
         elif param == 'gamma':
-            plt.xlabel('Reward Discount, '+r'$\gamma$', fontsize=14)
+            plt.xlabel('Reward Discount, '+r'$\gamma$', fontsize=16)
         plt.ylim(0,T)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
         plt.tight_layout()
         plt.savefig('../../'+plot+'.png', dpi=800)
         plt.show()
@@ -814,6 +365,7 @@ def get_protocol (Q_matrix, actions, N, T, f):
     vstep = 1/N
     state_vec = list(np.arange(0,1+vstep,vstep))
     sigfig = round(math.log10(N))
+    #sigfig = 3 # ERIC: changed this for real_world alpha_keto results (N=200), UPDATED: 3/2/2020
     state_vec = [round(state, sigfig) for state in state_vec]
     
     action_vec = []
@@ -983,7 +535,7 @@ def extract(raw_string, start_marker, end_marker):
     return (raw_string[start:end])
 
 def plotResultsAVG (directory, param, p_range, repair_list=[0,0.01], N=100, T=100, soln_type='analytic', plot=False, fine_res=False,
-                binning=False):
+                binning=False, f=0.025, r=0.01, alpha=10, gamma=0.975, CI=75, get_CI=False):
     '''
     directory = path to directory containing subdirectories with ordered files
     param = 'alpha', 'failure', 'repair', 'gamma'
@@ -995,11 +547,16 @@ def plotResultsAVG (directory, param, p_range, repair_list=[0,0.01], N=100, T=10
     plot = Boolean
     fine_res = Boolean (use True): finer reseoltuon for soln_type plot
     binning = Boolean: bin parameter ranges together and get average switch time?
+    
+    f, r, alpha, gamma = model parameters
+    CI = confidence interval to plot (optionally report)
+    get_CI = if True: returns (cT1, cT1_low, cT1_high, aT1)
     '''
     # returned values
     cT1 = []
     aT1 = []
-    cT1_std = []
+    cT1_low = []
+    cT1_high = []
     
     # Get all subdirectories
     subdirs = get_immediate_subdirectories(directory)
@@ -1010,10 +567,6 @@ def plotResultsAVG (directory, param, p_range, repair_list=[0,0.01], N=100, T=10
     files = [os.path.join(first_dir_path, f) for f in files] # add path to each file
     
     # Default param values
-    f = 0.025
-    r = 0.01
-    alpha = 10
-    gamma = 0.975
     d = 0
     
     # Analyze results
@@ -1064,8 +617,9 @@ def plotResultsAVG (directory, param, p_range, repair_list=[0,0.01], N=100, T=10
                 compT1, anlyT1 = validate_analytics(filepath, [f,r,alpha,gamma,d,T], repair_list, N)
                 c_list.append(compT1)
             except: continue
-        cT1.append(sum(c_list)/len(c_list))
-        cT1_std.append(np.std(np.array(c_list)))
+        cT1.append(np.nanmean(c_list))
+        cT1_low.append(np.nanpercentile(c_list, 50-CI/2))
+        cT1_high.append(np.nanpercentile(c_list, 50+CI/2))
         aT1.append(anlyT1)
         
     if fine_res is True:
@@ -1094,7 +648,7 @@ def plotResultsAVG (directory, param, p_range, repair_list=[0,0.01], N=100, T=10
         plt.figure(figsize=(6,4))
         # Plot learned results
         if binning is False:
-            plt.errorbar(comp_p_range, cT1, yerr=cT1_std, color='0.5', linestyle="None")
+            plt.errorbar(comp_p_range, cT1, color='0.5', yerr=(np.array(cT1)-np.array(cT1_low), np.array(cT1_high)-np.array(cT1)), ecolor='0.5', capsize=2.5, elinewidth=1.5, linewidth=0)
             plt.scatter(comp_p_range, cT1, c='0.5', marker='o', s=25, edgecolors='none', label='Q-learning')
         else:
             param_vals = comp_p_range
@@ -1115,26 +669,34 @@ def plotResultsAVG (directory, param, p_range, repair_list=[0,0.01], N=100, T=10
             plt.plot(a_range, aT1, 'm', linestyle='--', linewidth=3, alpha=0.6, label='Theoretical')
         else:
             plt.plot(p_range, aT1, 'm', linestyle='--', linewidth=3, alpha=0.6, label='Theoretical')
-        plt.ylabel('Switching Time, $T_1$', fontsize=14)
+        plt.ylabel('Switching Time, $T_1$', fontsize=16)
         if param == 'alpha':
-            plt.xlabel('Repair Cost, '+r'$\alpha$', fontsize=14)
-            plt.xlim(0,15)
+            plt.xlabel('Repair Cost, '+r'$\alpha$', fontsize=16)
+            plt.xlim(-0.15,15.15)
         elif param == 'failure':
-            plt.xlabel('Failure rate, $f$', fontsize=14)
+            plt.xlabel('Failure rate, $f$', fontsize=16)
             plt.xlim(0.005,0.051)
         elif param == 'repair':
-            plt.xlabel('Repair rate, $r$', fontsize=14)
-            plt.xlim(0,None)
+            plt.xlabel('Repair rate, $r$', fontsize=16)
+            #plt.xlim(0,None)
         elif param == 'gamma':
-            plt.xlabel('Reward Discount, '+r'$\gamma$', fontsize=14)
+            plt.xlabel('Reward Discount, '+r'$\gamma$', fontsize=16)
             plt.xlim(0.945,0.998)
-        plt.ylim(0,T)
-        plt.legend(loc='upper left')
+        plt.ylim(-1,T)
+        if param == 'alpha':
+            plt.legend(loc='lower right',fontsize=14)
+        else:
+            plt.legend(loc='upper left')
+        plt.xticks(fontsize=13)
+        plt.yticks(fontsize=13)
         plt.tight_layout()
         plt.savefig('../../'+plot+'.png', dpi=800)
         plt.show()
-        
-    return (cT1, aT1)
+    
+    if get_CI is False:
+        return (cT1, aT1)
+    else:
+        return (cT1, cT1_low, cT1_high, aT1, comp_p_range)
 
 
 def plotMatchingAVG (path, filename, savename, f, r, alpha, gamma, d, T=100, N=100, method='mode'):
@@ -1148,7 +710,7 @@ def plotMatchingAVG (path, filename, savename, f, r, alpha, gamma, d, T=100, N=1
     aT1 = analytical_T1([f, r, alpha, gamma, d, T]) # get analytical switch time
     t_range = np.linspace(0,T,1000)
     r_range = [0 if t<aT1 else r for t in t_range]
-    plt.figure(figsize=(6,4))
+    plt.figure(figsize=(10,4))
     plt.plot(t_range, r_range, '#000080', linewidth=2.5, alpha=0.3, label='Theoretical $r(t)$')
     
     # Plot learned repair
@@ -1173,13 +735,17 @@ def plotMatchingAVG (path, filename, savename, f, r, alpha, gamma, d, T=100, N=1
     time_vec = np.arange(0,len(repair_vec)) # get time vec
     plt.scatter(time_vec.tolist(), repair_vec, color='#000080', s=7, alpha=0.7, label='Learned $r(t)$')
     
-    plt.xlabel('Time, $t$', fontsize=14)
-    plt.ylabel('Repair, $r(t)$', fontsize=14)
+    plt.xlabel('Time, $t$', fontsize=32)
+    plt.ylabel('Repair, $r(t)$', fontsize=32)
     plt.xlim(0,T)
     plt.ylim(-0.001, None)
-    plt.legend(loc='lower right')
+    plt.xticks(fontsize=25)
+    plt.yticks(fontsize=25)
+    plt.locator_params(axis='y', nbins=2)
+    plt.locator_params(axis='x', nbins=3)
+    plt.legend(loc='center left',fontsize=25,bbox_to_anchor=(1, 0.6))
     plt.tight_layout()
-    plt.savefig('/Users/edsun/Desktop/RESEARCH/Mathematical_Aging/ReinforcementLearning/Matching_'+savename+'.png', dpi=700)
+    plt.savefig('/Users/edsun/Desktop/RESEARCH/Mathematical_Aging/ReinforcementLearning/Matching_'+savename+'.png', bbox_inches='tight',dpi=700)
     plt.show()
     
     

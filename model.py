@@ -1,14 +1,61 @@
-#####################
-# Copyright Eric Sun 2019
-#####################
-# Python script containing all main functions for building and aging complex networks. The script contains
-# functions for measuring costs, implement repair protocols, and determining optimal protocols via a grid
-# search. There are additional utilities in the code such as node replication and ablation/removal that were
-# not discussed in the associated manuscript.
-#####################
 
+# coding: utf-8
+
+# # A Network Model for Aging
+# ### Eric Sun
+# ### Last updated 2/1/2019
+
+# ### Outdated documentation
+
+# simPopulation - iterates over 'pop_size' number of individuals and averages results
+# 
+# simIndividual - main function that runs the model for one individual
+#     1. graph_type - 'scale_free', 'Grandom', 'ERRandom' (default) with identifier + '_s' for symmetric or + '_d' for directed
+#     2. N - number of nodes
+#     3. p - probability of attachment for random network :: degree/sum(degrees) probability for scale-free
+#     4. (REMOVED) G - number of iterations to run, 'yolo' to run until all nodes failed
+#     5. d - proportion of initial failed nodes (=1), for perfect initial system (d=0)
+#     6. f - independent probability of failure
+#     7. r - independent probability of repair (only for non-checking)
+#     8. f_thresh - threshold fraction of live nodes below which system failure occurs
+#     9. weight_type - 'uniform' (default) or 'degree' proportional weighting for contribution of node to vitality
+#     
+#     
+#     threshold fraction of connections needed to force node failure, set to 0.0 for no threshold
+# 
+#     - Initializes adjacency matrix from parameters
+#     - Runs iterations with checking strategy
+#     - Reports results
+# 
+# Check(choice, kinetic_boolean, P_check, e)
+#     1. Uniform - each node has check probability 'P_check', repair error 'e'
+#     2. Biased - each node has check probability EXP[-(degree_k/tot_degree)/P_check], repair error 'e'
+#     3. Kinetic - each node has check probability uniform or biased, repair error 'e'^N where N = number of proofs
+# 
+# Cost(costC, costR, costL):
+#     1. 'longevity' - cost = cost = total(costR + costC) - longevity(costL*failure_time)
+#     2. 'energy' - cost = total(costR + costC) - energy(costL*live_nodes)
+#     
+#     - costC - cost of checking; for each iteration, this is ~ N_checks times costC
+#     - costR - cost of repair
+#     - costL - cost of longevity/living (is subtractive; offsets costs)
+# 
+# Analyze - function that generates results and statistics from adjacency matrix
+#     - For population of organisms:
+#     1. Mortality Rate - mu(t) = -[s(t+1)-s(t)]/s(t), where s(t) is the fraction of live individuals at time t
+#     
+#     - For each individual (network):
+#     2. Vitality - phi(t) = SUM(nodes)/N is the average "fitness"
+#     3. Interdependence - lambda(phi(t)) = log(phi(t))/log(phi0(t)) where phi0(t) = exp[(-f+r)t] is the expectation
+# 
+# Report - generates figures, writes results file
+#     - Generates figures for s / mortality rates / vitality / interdependence across time
+#     - Saves figures as PNG file and results (mu, phi, lambda) as CSV file
+
+# In[5]:
 
 # Import necessary packages
+#  %matplotlib notebook # run notebook inline
 import numpy as np
 import random
 import math
@@ -20,6 +67,8 @@ import time
 from tqdm import tqdm 
 from mpl_toolkits.mplot3d import Axes3D
 
+
+# In[6]:
 
 def readInputs (input_file_path):
     '''
@@ -100,6 +149,7 @@ def readInputs (input_file_path):
                   repair_start, repair_end, delay, time_end, dependency, save, plot, write_inds)
 
 
+# In[7]:
 
 def optimizeBangBang_cluster (exp_name, pop_size, dependency, parameter_type, parameter_list, T1_list, T2_list, 
                               T_std, highres_step, T):
@@ -214,9 +264,40 @@ def optimizeBangBang_cluster (exp_name, pop_size, dependency, parameter_type, pa
             writer = csv.writer(file)
             writer.writerows(save_list)
         
+        # Plot results for f, r, a, d=0, depoff, N=1000
+#        fig = plt.figure()
+#        ax = fig.add_subplot(111, projection='3d')
+#        ax.plot_trisurf(T1_results, T2_results, cost_results)
+#        ax.set_xlabel('T1')
+#        ax.set_ylabel('T2')
+#        ax.set_zlabel('Cost')
+#        ax.text(minT1, minT2, min_cost, min_statement)
+#        plt.savefig('./BangBang/T1_T2_mins/'+save_tag+'_SURF.png')
+#        plt.close()
+
+#        fig2 = plt.figure()
+#        ax = fig2.add_subplot(111, projection='3d')
+#        ax.scatter(T1_results, T2_results, cost_results)
+#        ax.set_xlabel('T1')
+#        ax.set_ylabel('T2')
+#        ax.set_zlabel('Cost')
+#        ax.text(minT1, minT2, min_cost, min_statement)
+#        plt.savefig('./BangBang/T1_T2_mins/'+save_tag+'_SCATT.png')
+#        plt.close()
+        
         time.sleep(3)
 
+    # Plot best T1 and T2 curves with x-axis as param
+    #fig3 = plt.figure()
+    #plt.plot(parameter_list, best_T1, 'g--', label='T1')
+    #plt.plot(parameter_list, best_T2, 'r--', label='T2')
+    #plt.title('Bang-Bang Optimal Repair ('+parameter_type+')')
+    #plt.xlabel(parameter_type)
+    #plt.ylabel('T')
+    #plt.legend(loc='upper right')
     new_save_tag = 'vary'+parameter_type+'_'+save_tag
+    #plt.savefig('./BangBang/ParamCurves/'+new_save_tag+'.png', dpi=800)
+    #plt.show()
     
     # Save min_costs, bestT1, bestT2
     save_list = [min_costs, best_T1, best_T2]
@@ -225,6 +306,8 @@ def optimizeBangBang_cluster (exp_name, pop_size, dependency, parameter_type, pa
         writer = csv.writer(file)
         writer.writerows(save_list)
 
+
+# In[8]:
 
 def optimizeBangBang (exp_name, pop_size, dependency, parameter_type, parameter_list, T1_list, T2_list, T):
     '''
@@ -352,6 +435,7 @@ def optimizeBangBang (exp_name, pop_size, dependency, parameter_type, parameter_
         writer.writerows(save_list)
 
 
+# In[9]:
 
 def optimizeChecking_cluster (exp_name, pop_size, dependency, delay, parameter_type, parameter_list, 
                               cT1_list, cT2_list, T_std, highres_step, T):
@@ -473,6 +557,29 @@ def optimizeChecking_cluster (exp_name, pop_size, dependency, delay, parameter_t
             writer = csv.writer(file)
             writer.writerows(save_list)
         
+#        cT1_results = [t1-delay for t1 in T1_results]
+#        cT2_results = [t2-delay for t2 in T2_results]
+        
+        # Plot results for f, r, a, d=0, depoff, N=1000
+#        fig = plt.figure()
+#        ax = fig.add_subplot(111, projection='3d')
+#        ax.plot_trisurf(cT1_results, cT2_results, cost_results)
+#        ax.set_xlabel('checking T1')
+#        ax.set_ylabel('checking T2')
+#        ax.set_zlabel('Cost')
+#        ax.text(minT1-delay, minT2-delay, min_cost, min_statement)
+#        plt.savefig('./BangBang/T1_T2_mins/'+save_tag+'_SURF.png')
+#        plt.close()
+
+#        fig2 = plt.figure()
+#        ax = fig2.add_subplot(111, projection='3d')
+#        ax.scatter(cT1_results, cT2_results, cost_results)
+#        ax.set_xlabel('checking T1')
+#        ax.set_ylabel('checking T2')
+#        ax.set_zlabel('Cost')
+#        ax.text(minT1-delay, minT2-delay, min_cost, min_statement)
+#        plt.savefig('./BangBang/T1_T2_mins/'+save_tag+'_SCATT.png')
+#        plt.close()
         
         time.sleep(3)
     
@@ -500,6 +607,7 @@ def optimizeChecking_cluster (exp_name, pop_size, dependency, delay, parameter_t
         writer.writerows(save_list)
 
 
+# In[10]:
 
 def optimizeChecking (exp_name, pop_size, dependency, delay, parameter_type, parameter_list, cT1_list, cT2_list, T):
     
@@ -642,6 +750,8 @@ def optimizeChecking (exp_name, pop_size, dependency, delay, parameter_type, par
         writer.writerows(save_list)
 
 
+# In[11]:
+
 def examineMultipliers (name, mrange, m_idx, check_type, cost_type, graph_type='Grandom_s', num_networks=50, repair_end=100, dependency=0):
     '''
     Function for multiplying the cost of repair by a multiplier (m) across a list of m values. A scatter plot is 
@@ -677,13 +787,16 @@ def examineMultipliers (name, mrange, m_idx, check_type, cost_type, graph_type='
     plt.show()
 
 
+# In[12]:
+
 def simPopulation (filename, pop_size=1, N=1000, p=0.1, d=0, f=0.025, r=0.01, f_thresh=0.1, 
                    graph_type='Grandom_s', weight_type='uniform', check_type='none', 
                    kinetic=1, P_check=0.01, e=0, cost_type=['basic'], costC=0, costR=0, costE=0, costD=0, costL=0, 
                    P_repl=0, costrepl=0, max_repl=1, repl_type='constant', node_type='binary', damage_type='uniform',
                    edge_type='binary', f_edge=0, r_edge=0, std=0.3, 
                    P_ablate=0, costablate=0, ablate_type='constant', repair_start=0, repair_end='none', delay=0,
-                   time_end='none', dependency=0, save='no', plot='yes', write_inds='no', preNet_list=False):
+                   time_end='none', dependency=0, save='no', plot='yes', write_inds='no', preNet_list=False,
+                   equilibrate_failures=True):
 
     '''
     Main function for simulating a population of aging networks. Takes in all model parameters, runs simIndividual for 
@@ -755,14 +868,14 @@ def simPopulation (filename, pop_size=1, N=1000, p=0.1, d=0, f=0.025, r=0.01, f_
                                                     P_repl,costrepl,max_repl,repl_type,
                                                     node_type, damage_type, edge_type, f_edge, r_edge, std,
                                                     P_ablate,costablate,ablate_type,repair_start,repair_end,delay,time_end,
-                                                    dependency)
+                                                    dependency,preNet_list,equilibrate_failures)
         else:
             vit, inter, ftime, cost = simIndividual(N,p,d,f,r,f_thresh,graph_type,weight_type,check_type,kinetic,P_check,e,
                                                     cost_type,costC,costR,costE,costD,costL,
                                                     P_repl,costrepl,max_repl,repl_type,
                                                     node_type, damage_type, edge_type, f_edge, r_edge, std,
                                                     P_ablate,costablate,ablate_type,repair_start,repair_end,delay,time_end,
-                                                    dependency,preNet_list[i])
+                                                    dependency,preNet_list[i],equilibrate_failures)
         vitality.append(vit)
         interdependence.append(inter)
         failure_times.append(ftime)
@@ -785,12 +898,12 @@ def simPopulation (filename, pop_size=1, N=1000, p=0.1, d=0, f=0.025, r=0.01, f_
     #return(vitality[0][-1])
 
 
-# In[10]:
+# In[13]:
 
 def simIndividual (N,p,d,f,r,f_thresh,graph_type,weight_type,check_type,kinetic,P_check,e,
                    cost_type,costC,costR,costE,costD,costL,P_repl,costrepl,max_repl,repl_type,
                    node_type,damage_type,edge_type,f_edge,r_edge,std,P_ablate,costablate,ablate_type,
-                   repair_start,repair_end,delay,time_end,dependency,preNet=False):
+                   repair_start,repair_end,delay,time_end,dependency,preNet=False,equilibrate_failures=True):
     
     '''
     Simulates the aging of one individual network. The aging algorithm:
@@ -840,6 +953,16 @@ def simIndividual (N,p,d,f,r,f_thresh,graph_type,weight_type,check_type,kinetic,
         degree_vec = getDegrees (A)
         weight_vec = getWeights (weight_type, A, v, degree_vec)
         
+        # Analyze current state, compute summary statistics
+        #try:
+        #    vitality_i, interdependence_i = Analyze(v, f, r, i, weight_vec)
+        #    vitality.append(vitality_i)
+        #    interdependence.append(interdependence_i)
+        #except:
+        #    print ('Error calculating interdependence at timestep ' + str(i))
+        #    i = i-1
+        #    break
+        
         vitality_i, interdependence_i = Analyze(v, f, r, i, weight_vec)
         vitality.append(vitality_i)
         interdependence.append(interdependence_i)
@@ -859,6 +982,10 @@ def simIndividual (N,p,d,f,r,f_thresh,graph_type,weight_type,check_type,kinetic,
         # Stops data collection if time_end reaches
         if time_end != 'none' and i >= time_end:
             break
+        
+        # More stringent break constrain for continuous node health
+#        if (v>0.1).sum()/len(v) <= f_thresh: # health < 0.1 counts as failed
+#            break
         
         # simulate stochastic damage
         A, v, f = Damage(A, v, f, damage_type, node_type, edge_type, f_edge, std, i)
@@ -910,7 +1037,8 @@ def simIndividual (N,p,d,f,r,f_thresh,graph_type,weight_type,check_type,kinetic,
         
         # dependency-related failure
         if dependency > 0:
-            v = dependencyFail(A, v, num_neigh, dependency)
+            v = dependencyFail(A, v, num_neigh, dependency, equilibrate_failures)
+            #v = dependencyFailOLD(A, v, dependency)
         
         i += 1
     
@@ -924,6 +1052,8 @@ def simIndividual (N,p,d,f,r,f_thresh,graph_type,weight_type,check_type,kinetic,
     # returns summary
     return(vitality, interdependence, failure_time, costs)
 
+
+# In[14]:
 
 def initIndividual (N, graph_type, p, d, edge_type):
     '''
@@ -971,6 +1101,8 @@ def initIndividual (N, graph_type, p, d, edge_type):
     return (A, v)
 
 
+# In[15]:
+
 def initIndividualCont (N, graph_type, p, d, edge_type, std):
     '''
     Function for building continuous network structures:
@@ -1016,6 +1148,8 @@ def initIndividualCont (N, graph_type, p, d, edge_type, std):
     return (A, v)
 
 
+# In[16]:
+
 def makeGilbertRandom (N, graph_type, p):
     '''
     Builds a Gilbert random network where edges are made with probaility p between any two nodes in the network
@@ -1048,7 +1182,7 @@ def makeGilbertRandom (N, graph_type, p):
     return (A)
 
 
-# In[14]:
+# In[17]:
 
 def makeBAScaleFree (N, graph_type, p):
     '''
@@ -1064,7 +1198,7 @@ def makeBAScaleFree (N, graph_type, p):
     return (A)
 
 
-# In[15]:
+# In[18]:
 
 def makeERRandom (N, graph_type, p): # Same as in Vural 2014
     '''
@@ -1079,7 +1213,7 @@ def makeERRandom (N, graph_type, p): # Same as in Vural 2014
     return (A)
 
 
-# In[16]:
+# In[19]:
 
 def makeERRandomOLD (N, graph_type, p): # Same as in Vural 2014
     '''
@@ -1114,6 +1248,7 @@ def makeERRandomOLD (N, graph_type, p): # Same as in Vural 2014
     return (A)
 
 
+# In[20]:
 
 def randomWeights (A):
     '''
@@ -1133,6 +1268,7 @@ def randomWeights (A):
     return (new_A)
 
 
+# In[21]:
 
 def getWeights (weight_type, A, v, degree_vec):
     '''
@@ -1147,6 +1283,7 @@ def getWeights (weight_type, A, v, degree_vec):
     return (weight_vec)
 
 
+# In[22]:
 
 def getDegrees (A):
     '''
@@ -1156,6 +1293,7 @@ def getDegrees (A):
     return (degree_vec)
 
 
+# In[23]:
 
 def Damage (A, v, f, damage_type, node_type, edge_type, f_edge, std, i):
     '''
@@ -1184,6 +1322,7 @@ def Damage (A, v, f, damage_type, node_type, edge_type, f_edge, std, i):
     return (A, v, f)
 
 
+# In[24]:
 
 def damageUniform (A, v, f, node_type, std):
     '''
@@ -1212,6 +1351,7 @@ def damageUniform (A, v, f, node_type, std):
     return (v)
 
 
+# In[25]:
 
 def damageBiased (A, v, f, node_type, std):
     '''
@@ -1244,6 +1384,7 @@ def damageBiased (A, v, f, node_type, std):
     return (v)
 
 
+# In[26]:
 
 def damageAggregate (A, v, f, node_type, std, i):
     '''
@@ -1257,6 +1398,7 @@ def damageAggregate (A, v, f, node_type, std, i):
     return (v, new_f)
 
 
+# In[27]:
 
 def damageEdges(A, edge_type, f_edge, std):
     '''
@@ -1284,6 +1426,7 @@ def damageEdges(A, edge_type, f_edge, std):
     return (A)
 
 
+# In[28]:
 
 def Check_and_Repair (A, v, r, check_type, kinetic, P_check, e, i, costC, costR, node_type, edge_type, r_edge, std):
     '''
@@ -1342,6 +1485,7 @@ def Check_and_Repair (A, v, r, check_type, kinetic, P_check, e, i, costC, costR,
     return (cost, A, v, P_check, r)
 
 
+# In[29]:
 
 def checkNone (A, v, r, costR, node_type, std):
     '''
@@ -1372,6 +1516,7 @@ def checkNone (A, v, r, costR, node_type, std):
     return (v, cost)
 
 
+# In[30]:
 
 def checkUniform (A, v, costR, costC, P_check, e, node_type, std):
     '''
@@ -1411,6 +1556,7 @@ def checkUniform (A, v, costR, costC, P_check, e, node_type, std):
     return (v, cost)
 
 
+# In[31]:
 
 def checkBiased (A, v, costR, costC, P_check, e, node_type, std):
     '''
@@ -1458,6 +1604,7 @@ def checkBiased (A, v, costR, costC, P_check, e, node_type, std):
     return (v, cost)
 
 
+# In[32]:
 
 def repairSpace (A, v, check_type, node_type, e, std):
     '''
@@ -1511,6 +1658,7 @@ def repairSpace (A, v, check_type, node_type, e, std):
     return (v, cost, r)
 
 
+# In[33]:
 
 def checkAge (A, v, costR, costC, P_check, e, i):
     '''
@@ -1525,6 +1673,7 @@ def checkAge (A, v, costR, costC, P_check, e, i):
         tot_degree = np.sum(np.sum(A, axis=0))
         T = round(1/(1-math.exp(-(degree_k/tot_degree)/P_check)))
         if (i+1) % T == 0:
+            #print (str(T) + ' divides ' + str(i+1))
             cost += costC # adds checking cost
             if v[k] == 0:
                 rand_draw = random.uniform(0,1)
@@ -1538,6 +1687,7 @@ def checkAge (A, v, costR, costC, P_check, e, i):
     return (v, cost)
 
 
+# In[34]:
 
 def checkBlock (A, v, costR, costC, P_check, e, i):
     '''
@@ -1548,6 +1698,7 @@ def checkBlock (A, v, costR, costC, P_check, e, i):
     k = 0
     T = round(1/P_check)
     if (i+1) % T == 0:
+        #print (str(T) + ' divides ' + str(i+1))
         while k < len(v):
             cost += costC # adds checking cost
             if v[k] == 0:
@@ -1562,6 +1713,7 @@ def checkBlock (A, v, costR, costC, P_check, e, i):
     return (v, cost)
 
 
+# In[35]:
 
 def checkTime (A, v, costR, costC, P_check, e, node_type, std, i):
     '''
@@ -1569,6 +1721,7 @@ def checkTime (A, v, costR, costC, P_check, e, node_type, std, i):
     Checking probability that decays with time
     '''
     
+#    new_r = r + 1/(2*i) * r
     new_P_check = P_check + 1/(2*(i+1)) * P_check
     
     v, cost = checkUniform(A, v, costR, costC, new_P_check, e, node_type, std)
@@ -1576,6 +1729,7 @@ def checkTime (A, v, costR, costC, P_check, e, node_type, std, i):
     return (v, cost, new_P_check)
 
 
+# In[36]:
 
 def repairNumerical (A, v, r, costR, node_type, std, i, check_type):
     '''
@@ -1615,6 +1769,7 @@ def repairNumerical (A, v, r, costR, node_type, std, i, check_type):
     return (v, cost, new_r)
 
 
+# In[37]:
 
 def repairQuadratic (A, v, r, costR, node_type, std, i, check_type):
     '''
@@ -1655,9 +1810,13 @@ def repairQuadratic (A, v, r, costR, node_type, std, i, check_type):
     a = -vertex_r/(vertex_t**2)
     new_r = (a*(i-vertex_t)**2+vertex_r)
     
+#    if i % 10 == 0:
+#        print (str(i)+', '+str(new_r)+', '+str(r))
+    
     return (v, cost, new_r)
 
 
+# In[38]:
 
 def repairEdges(A, edge_type, r_edge, std):
     '''
@@ -1685,6 +1844,7 @@ def repairEdges(A, edge_type, r_edge, std):
     return (A)
 
 
+# In[39]:
 
 def Replicate (A, v, P_repl, costrepl, max_repl, repl_v, repl_type, i):
     '''
@@ -1728,6 +1888,20 @@ def Replicate (A, v, P_repl, costrepl, max_repl, repl_v, repl_type, i):
     return (new_A, new_v, cost, repl_v)
 
 
+# In[40]:
+
+#A = np.zeros((4,4))
+#v = np.array([1,1,1,1])
+#repl_v = ([5,6,7,8])
+#new_A, new_v, cost, repl_v = Replicate (A, v, 0.8, 1, 10, repl_v, repl_type, 1)
+#print (new_A)
+#print(new_v)
+#print(cost)
+#print(repl_v)
+
+
+# In[41]:
+
 def Ablate (A, v, P_ablate, costablate, ablate_type, i):
     
     '''
@@ -1766,23 +1940,47 @@ def Ablate (A, v, P_ablate, costablate, ablate_type, i):
     return (new_A, new_v, cost)
 
 
-def dependencyFail (A, v, num_neigh, dependency):
+# In[51]:
+
+def dependencyFail (A, v, num_neigh, dependency, equilibrate_failures):
     '''
     Fail live nodes if the fraction of live neighbors is below the "dependency" value (i.e. I).
+    equilibrate_failures [Boolean] = whether to equilibrate failures or not
     '''
     # Break if majority of connections are broken (i.e. num_good < 0.5*num_total)
     v_new = np.copy(v)
-    num_good = np.matmul(A.T, v) # vector of number of good neighbors
-    for k in range(len(v)):
-        try:
-            if num_good[k] < dependency*num_neigh[k]:
-                v_new[k] = 0 # breaks
-        except: # for BA and ER graphs
-            if num_good[0,k] < dependency*num_neigh[0,k]:
-                v_new[k] = 0 # breaks
+    if equilibrate_failures is False:
+        num_good = np.matmul(A.T, v) # vector of number of good neighbors
+        for k in range(len(v)):
+            try:
+                if num_good[k] < dependency*num_neigh[k]:
+                    v_new[k] = 0 # breaks
+            except: # for BA and ER graphs
+                if num_good[0,k] < dependency*num_neigh[0,k]:
+                    v_new[k] = 0 # breaks
+    else: # equilibrate
+        keep_going = True
+        while keep_going is True:
+            num_good = np.matmul(A.T, v_new) # vector of number of good neighbors
+            num_breaks = 0
+            for k in range(len(v)):
+                try:
+                    if num_good[k] < dependency*num_neigh[k]:
+                        if v_new[k] == 1:
+                            num_breaks += 1
+                        v_new[k] = 0 # breaks
+                except: # for BA and ER graphs
+                    if num_good[0,k] < dependency*num_neigh[0,k]:
+                        if v_new[k] == 1:
+                            num_breaks += 1
+                        v_new[k] = 0 # breaks
+            if num_breaks == 0:
+                keep_going = False
                     
     return (v_new)
 
+
+# In[43]:
 
 def dependencyFailOLD (A, v, dependency):
     '''
@@ -1809,6 +2007,8 @@ def dependencyFailOLD (A, v, dependency):
         
     return (v_new)
 
+
+# In[44]:
 
 def getCosts (cost, costE, costD, costL, costr, costc, vitality_i, cost_type):
     '''
@@ -1849,6 +2049,11 @@ def getCosts (cost, costE, costD, costL, costr, costc, vitality_i, cost_type):
             a = 1
         total_cost = a * costr**2 - vitality_i
         
+#    if 'healthspan_ratio' in cost_type: # repair/vitality cost for bang-bang repair
+#        if vitality_i == 0:
+#            total_cost = costr/0.01
+#        else:
+#            total_cost = costr/vitality_i
             
     if 'checking_delay' in cost_type: # a1*checking + a2*repair + vitality for bang-bang checking
         if costc > 0:
@@ -1864,6 +2069,7 @@ def getCosts (cost, costE, costD, costL, costr, costc, vitality_i, cost_type):
     return (total_cost)
 
 
+# In[45]:
 
 def Analyze(v, f, r, i, weight_vec):
     '''
@@ -1887,6 +2093,7 @@ def Analyze(v, f, r, i, weight_vec):
     return (vitality, interdependence)
 
 
+# In[46]:
 
 def Report(filename, end_tag, vitality, interdependence, failure_times, costs, cost_type, costL, 
            save, plot, write_inds, f_thresh):
@@ -1923,6 +2130,10 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
                 inter.append(interdependence[ind][t])
                 cost.append(costs[ind][t])
             else: 
+                # append dead individual values (to avoid skewed statistics from long-lived)
+#                vit.append(vitality[ind][-1])
+#                inter.append(interdependence[ind][-1])
+                # OR: append (0)
                 vit.append(0)
                 inter.append(0)
                 
@@ -1938,6 +2149,7 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
         s.append(s_t) # fraction of individuals alive at time t
         
         if t > 0:
+            #mort = -(s_t-s[t-1])/s_t # from Vural
             mort = (s[t-1]-s_t)/s[t-1] # real def
             mortality.append(mort)
         
@@ -1947,6 +2159,8 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
     
     # Calculate costs
     tot_cost = sum(costs_m)
+#    if cost_type == 'longevity_old':
+#        tot_cost += -(costL*failure_times_m) # should give the same as subtracting each ind separately
     if 'longevity' in cost_type:
         tot_cost += costL*(1/failure_times_m) # keeps cost always positive, long life minimizes costL (large)    
     
@@ -1969,7 +2183,7 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
             data_list.append(vitality[i])
             data_list.append(costs[i]) 
             data_list.append(interdependence[i])
-            data_list.append([failure_times[i]])
+            #data_list.append([failure_times[i]])
 
             if write_inds == 'yes':
                 file = open('Data/'+filename+end_tag+'_'+str(i)+'.csv', 'w', newline='')
@@ -1986,6 +2200,8 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
         data_list.append(interdependence_m)
         data_list.append(s) 
         data_list.append(mortality)
+        #data_list.append([failure_times_m])
+        #data_list.append([tot_cost])
 
         file = open('Data/'+filename+end_tag+'_MEAN.csv', 'w', newline='')
         with file:
@@ -1996,10 +2212,16 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
     time = np.arange(1,len(vitality_m)+1)
     
     # Vitality
+    
+    # COMMENT OUT (just for extending vitality_m range):
+    #while len(vitality_m) < 30:
+    #    vitality_m.append(0)
+    #time = np.arange(1,30+1)
     ####
     if save == 'yes' or plot == 'yes':
         plt.figure(figsize=(6,4.2))
         for vit in vitality:
+            #plt.plot(np.arange(1,len(vit)+1,1), vit, color='#000080', alpha=0.1)
             plt.plot(np.arange(0,len(vit),1), vit, color='#000080', alpha=0.1) 
         plt.plot([t-1 for t in time], vitality_m, color='#000080', alpha=0.7, linewidth=3.0, label='Simulated')
         ### Theory (linear) plot
@@ -2008,16 +2230,71 @@ def Report(filename, end_tag, vitality, interdependence, failure_times, costs, c
         vitality_theory = [(np.exp((-f-r)*(t-1))*(f+np.exp((f+r)*(t-1))*r))/(f+r) for t in time]
         plt.plot([t-1 for t in time], vitality_theory, color='m', linestyle='--', alpha=0.5, linewidth=2.0, label='Linear Theory')
         ###
+        #plt.plot(time, np.multiply(np.ones(len(time)), f_thresh), color='#FFC0CB', linestyle='--', alpha=1.0, linewidth=1.5)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
+        #plt.title("Network Vitality", fontsize=22)
         plt.xlabel("Time, $t$", fontsize=16)
         plt.ylabel("Vitality, $\phi$", fontsize=16)
+        #plt.annotate('Mean Failure Time: ' + str(round(failure_times_m)-1), 
+        #             xy=(0.45, 0.88), xycoords='axes fraction', fontsize=12)
         plt.ylim([-0.05,1.05])
+        #plt.xlim([0,30])
         plt.xlim([-0.05, max(time)+0.05])
         plt.legend(loc='lower left')
         plt.tight_layout()
     if save == 'yes':
         plt.savefig('Figures/'+filename+'_vitality', dpi=800)
+    if plot == 'yes':
+        plt.show()
+    
+    #time = np.arange(1,len(interdependence_m)+1) # COMMENT OUT
+    # Interdependence
+    if save == 'yes' or plot == 'yes':
+        plt.figure()
+        plt.plot(time, interdependence_m, 'b')
+        plt.title("Interdependence")
+        plt.xlabel("Time (t)")
+        plt.ylabel("Interdependence")
+    if save == 'yes':
+        plt.savefig('Figures/'+filename+'_interdependence', dpi=500)
+    if plot == 'yes':
+        plt.show()
+    
+    # s (fraction alive)
+    if save == 'yes' or plot == 'yes':
+        plt.figure()
+        plt.plot(time, s, 'g')
+        plt.title("Fraction Individuals Alive")
+        plt.xlabel("Time t")
+        plt.ylabel("s")
+    if save == 'yes':
+        plt.savefig('Figures/'+filename+'_s', dpi=500)
+    if plot == 'yes':
+        plt.show()
+    
+    # Mortality
+    if save == 'yes' or plot == 'yes':
+        plt.figure()
+        plt.plot(time, mortality, 'c')
+        plt.title("Mortality")
+        plt.xlabel("Time (t)")
+        plt.ylabel("Mortality Rate")
+    if save == 'yes':
+        plt.savefig('Figures/'+filename+'_mortality', dpi=500)
+    if plot == 'yes':
+        plt.show()
+    
+    # Costs
+    if save == 'yes' or plot == 'yes':
+        plt.figure()
+        plt.plot(time, costs_m, 'k')
+        plt.title("Cost")
+        plt.xlabel("Time (t)")
+        plt.ylabel("Check Cost")
+        plt.annotate('Total Cost: ' + str(round(sum(costs_m), 2)), xy=(0.05, 0.9), xycoords='axes fraction')
+    if save == 'yes':
+        plt.savefig('Figures/'+filename+'_cost', dpi=500)
     if plot == 'yes':
         plt.show()
         
