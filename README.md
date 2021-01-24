@@ -24,6 +24,6 @@ Some data that is used to generate the figures included in the paper are also pr
 
 If you find the code helpful for your own work or project, please use the following citation:
 
-#### Sun E.D., Michaels T.C.T., Mahadevan L. "Optimal control of aging in complex networks". 2020. Proceedings of the National Academy of Sciences.
+#### Sun E.D., Michaels T.C.T., Mahadevan L. (2020). "Optimal control of aging in complex networks". Proceedings of the National Academy of Sciences.
 
 A summary of some model parameters along with additional directions for running the code is provided in the supplementary material associated with the publication under the "Computational model" section.
