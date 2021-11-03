@@ -29,8 +29,4 @@ Some data that is used to generate the figures included in the paper are also pr
 - "TOMLAB_data" contains optimal control solutions obtained via TOMLAB/propt on the nonlinear model
 - "ReinforcementLearning" contains linear/nonlinear data on learned Q-matrices from Q-learning
 
-If you find the code helpful for your own work or project, please use the following citation:
-
-#### Sun E.D., Michaels T.C.T., Mahadevan L. (2020). "Optimal control of aging in complex networks". Proceedings of the National Academy of Sciences.
-
 A summary of some model parameters along with additional directions for running the code is provided in the supplementary material associated with the publication under the "Computational model" section.
