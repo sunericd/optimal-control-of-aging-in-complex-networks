@@ -4,7 +4,7 @@
 
 **Sun, E. D., Michaels, T. C., & Mahadevan, L. (2020). Optimal control of aging in complex networks. Proceedings of the National Academy of Sciences, 117(34), 20404-20410. https://doi.org/10.1073/pnas.2006375117**
 
-This repository contains the code associated with the paper "Optimal control of aging in complex systems" by Eric D. Sun, Thomas C.T. Michaels and L. Mahadevan at the School of Engineering and Applied Sciences, Harvard University. The code is organized into several main Python scripts:
+This repository contains the code associated with the paper "Optimal control of aging in complex networks" by Eric D. Sun, Thomas C.T. Michaels and L. Mahadevan at the School of Engineering and Applied Sciences, Harvard University. The code is organized into several main Python scripts:
 - "model.py" which includes relevant functions for building, aging, and repairing complex networks. The script also contains methods for validating visualizing, and approximating optimal repair protocols.
 - "q_learning.py" which includes functions for applying a reinforcement learning (Q-learning) framework to determining optimal repair protocols for aging complex networks.
 - "ode_solver.py" which includes functions that specify the nonlinear analytical model of aging in complex systems along with methods for solving the corresponding differential equations for optimal control.
